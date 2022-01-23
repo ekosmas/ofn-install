@@ -10,14 +10,14 @@ ofn.local
 [lexi]
 local_lexi ansible_host=10.10.100.10 ansible_ssh_common_args='-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR'
 
-[travis]
-local_travis
+[test]
+local_test
 
 [local:children]
 vagrant
 lxc
 lexi
-travis
+test
 
 #------------------------------------------------------------------------------
 # Australia
@@ -111,6 +111,7 @@ uk-prod
 uk-staging
 uk-staging2
 
+
 #------------------------------------------------------------------------------
 # USA
 
@@ -126,12 +127,8 @@ us-prod
 [es-prod]
 app.katuma.org ansible_host=116.203.60.113
 
-[es-staging]
-staging.katuma.org ansible_host=51.15.216.10
-
 [es:children]
 es-prod
-es-staging
 
 #------------------------------------------------------------------------------
 # France
@@ -174,15 +171,6 @@ openfoodnetwork.org.za
 za-prod
 
 #------------------------------------------------------------------------------
-# Greece
-
-[gr-prod]
-www.openfoodnetwork.gr
-
-[gr:children]
-gr-prod
-
-#------------------------------------------------------------------------------
 # Europe
 
 [europe:children]
@@ -191,7 +179,7 @@ es-prod
 fr-prod
 uk-prod
 de-prod
-gr-prod
+ie-prod
 
 #------------------------------------------------------------------------------
 # America
@@ -207,7 +195,6 @@ us-prod
 europe
 america
 au-prod
-gr-prod
 
 #------------------------------------------------------------------------------
 # Staging Servers
@@ -216,7 +203,6 @@ gr-prod
 au-staging
 uk-staging
 fr-staging
-es-staging
 
 #------------------------------------------------------------------------------
 # All
@@ -237,7 +223,6 @@ be
 za
 br
 co
-gr
 cr
 
 #------------------------------------------------------------------------------
