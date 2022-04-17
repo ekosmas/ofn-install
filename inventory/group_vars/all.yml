@@ -50,7 +50,7 @@ swapfile_size: false
 
 #----------------------------------------------------------------------
 # Rails variables
-ruby_version: 2.7.3
+ruby_version: 3.0.3
 
 rbenv_extra_depends:
   - libjemalloc-dev
@@ -59,6 +59,9 @@ ruby_compile_options: "--with-jemalloc"
 
 ruby_versions:
   - version: 2.7.3
+    env:
+      RUBY_CONFIGURE_OPTS: "{{ ruby_compile_options }}"
+  - version: 3.0.3
     env:
       RUBY_CONFIGURE_OPTS: "{{ ruby_compile_options }}"
 
@@ -178,7 +181,8 @@ logrotate_applications:
   - name: rails
     definitions:
       - logs:
-          - "{{ current_path }}/log/*.log"
+          - "{{ current_path }}/log/production.log"
+          - "{{ current_path }}/log/staging.log"
         options:
           - weekly        # rotate weekly
           - rotate 4      # delete logs older than 4 rotations
@@ -187,17 +191,18 @@ logrotate_applications:
           - notifempty    # don't rotate if empty
           - copytruncate  # copy the log, then empty the active logfile
 
-  - name: unicorn
+  - name: sidekiq
     definitions:
       - logs:
-          - "{{ shared_path }}/log/unicorn.log"
+          - "{{ current_path }}/log/sidekiq.log"
         options:
-          - weekly        # rotate weekly
-          - rotate 4      # delete logs older than 4 rotations
+          - daily
+          - rotate 14     # delete logs older than 14 days
           - compress      # compress rotated logs
           - missingok     # ignore missing logs
           - notifempty    # don't rotate if empty
-          - copytruncate  # copy the log, then empty the active logfile
+        postrotate:
+          - "pkill -USR2 -f sidekiq"
 
   - name: postgres_queries
     definitions:
@@ -212,14 +217,8 @@ logrotate_applications:
           - "find /var/log/pg_log/ -name '*.log' -mtime +1 -exec rm {};"
 
 #----------------------------------------------------------------------
-# Unicorn variables
-# User name for the unprivileged user which runs unicorn
+# User name for the unprivileged user which runs the web server
 app_user: openfoodnetwork
-unicorn_config: "{{ config_path }}/unicorn.rb"
-unicorn_log: "{{ log_path }}/unicorn.log"
-unicorn_pid: "{{ pid_path }}/unicorn.pid"
-unicorn_sock: "{{ sock_path }}/unicorn.{{ app }}.sock"
-unicorn_workers: 2
 unicorn_timeout: 30
 
 puma_config: "{{ config_path }}/puma.rb"
