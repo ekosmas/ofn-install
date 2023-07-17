@@ -177,10 +177,14 @@ za-prod
 # Greece
 
 [gr-prod]
-www.openfoodnetwork.gr
+openfoodnetwork.gr
+
+[gr-staging]
+staging.openfoodnetwork.gr
 
 [gr:children]
 gr-prod
+gr-staging
 
 #------------------------------------------------------------------------------
 # Europe
@@ -217,6 +221,7 @@ au-staging
 uk-staging
 fr-staging
 es-staging
+gr-staging
 
 #------------------------------------------------------------------------------
 # All
