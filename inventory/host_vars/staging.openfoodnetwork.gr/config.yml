@@ -1,0 +1,13 @@
+---
+
+domain: staging.openfoodnetwork.gr
+host_id: gr-staging
+rails_env: staging
+
+admin_email: ekkosmas@gmail.com
+
+mail_domain: staging.openfoodnetwork.gr
+
+certbot_domains:
+  - staging.openfoodnetwork.gr
+

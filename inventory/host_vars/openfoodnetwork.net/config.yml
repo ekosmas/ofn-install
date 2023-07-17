@@ -20,9 +20,11 @@ postgres_listen_addresses:
   - '*'
 
 custom_hba_entries:
+  - "{{ custom_hba_metabase }}"
+  - "{{ custom_hba_n8n }}"
   - { type: hostssl, database: "{{ db }}", user: zapier, address: '54.86.9.50/32', auth_method: md5 }
 
-enable_rails_apm: "true"
+enable_rails_apm: "false"
 
-beta_testers:
-  - andy@andybrett.com
+# Allow more time to clone big order cycles.
+puma_timeout: "120"

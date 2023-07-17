@@ -1,18 +1,5 @@
 ---
 
-- name: fetch secrets
-  hosts: ofn_servers
-  remote_user: "{{ user }}"
-
-  tasks:
-    - name: update local secrets files
-      include_role:
-        name: fetch_secrets
-        apply:
-          delegate_to: 127.0.0.1
-      when: ( fetch_ofn_secrets is defined or lookup('env','FETCH_OFN_SECRETS') == 'TRUE' ) and inventory_hostname not in groups['local']
-      run_once: true
-
 - name: provision
   hosts: ofn_servers
   strategy: free
@@ -67,14 +54,18 @@
       become_user: "{{ app_user }}"
       tags: app
 
-    - role: yarn
+    - role: node # Set up node and yarn with nodenv.
       become: yes
-      tags: yarn
+      become_user: "{{ app_user }}"
+      tags: node
 
     - role: dbserver # Set up database server and user for the app.
       become: yes
       become_user: root
       tags: dbserver
+
+    - role: postgres_tuning
+      tags: postgres_tuning
 
     - role: libre_ops.multi_redis
       vars:
@@ -90,6 +81,7 @@
       become: yes
       vars:
         domain_name: "{{ certbot_domains | default([domain]) | join(',') }}"
+        domains: "{{ certbot_domains | default([domain]) }}"
         letsencrypt_email: "{{ developer_email }}"
         certbot_nginx_cert_name: "{{ certbot_cert_name | default(domain) }}"
         certbot_version: "0.31.0-2~deb10u1+ubuntu{{ ansible_distribution_version }}.1+certbot+3"
@@ -103,7 +95,7 @@
       become: yes
       tags: nginx
 
-    - role: webserver # Build the unicorn webserver.
+    - role: webserver
       tags: webserver
 
     - role: datadog
@@ -115,6 +107,14 @@
       tags: logrotate
 
   tasks:
+    - name: Fix Ruby # noqa 301
+      command:
+        cmd: bash -lc "rbenv uninstall -f {{ ruby_version }} && rbenv install {{ ruby_version }} && touch ~/.rbenv/versions/{{ ruby_version }}/.reinstalled"
+        creates: "~/.rbenv/versions/{{ ruby_version }}/.reinstalled"
+      become: yes
+      become_user: "{{ app_user }}"
+      when: ansible_distribution_major_version >= '20'
+
     - meta: flush_handlers # Ensure handlers run successfully before reporting success
 
     - name: notify slack

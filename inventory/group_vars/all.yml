@@ -98,7 +98,7 @@ postgres_encoding: en_US.utf8
 # Entries marked custom_* can be defined in /host_vars files, and will be appended
 # to the defaults if present. Make sure you use the "list" notation with the dashes!
 
-postgresql_version: "{% if ansible_distribution_major_version == '16' %}9.5{% else %}10{% endif %}"
+postgresql_version: "{% if ansible_distribution_major_version == '16' %}9.5{% elif ansible_distribution_major_version == '18' %}10{% else %}12{% endif %}"
 postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
 postgresql_bin_path: "/usr/lib/postgresql/{{ postgresql_version }}/bin"
 postgresql_config_path: "/etc/postgresql/{{ postgresql_version }}/main"
@@ -116,6 +116,9 @@ default_hba_entries:
   - {type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5}
   - {type: host, database: all, user: all, address: '::1/128', auth_method: md5}
 
+custom_hba_metabase: {type: hostssl, database: "{{ db }}", user: "metabase", address: "167.99.89.242/32", auth_method: md5}
+custom_hba_n8n: {type: hostssl, database: "{{ db }}", user: "n8n", address: "128.199.44.140/32", auth_method: md5}
+
 custom_hba_entries: []
 
 postgresql_hba_entries: "{{ default_hba_entries + custom_hba_entries }}"
@@ -125,7 +128,6 @@ postgres_listen_addresses:
 
 postgres_shared_preload_libraries:
   - pg_stat_statements
-  - wal2json
 
 postgresql_global_config_options:
   - option: listen_addresses
@@ -136,15 +138,10 @@ postgresql_global_config_options:
     value: "300000"
   - option: include_dir
     value: "conf.d"
+  - option: log_directory
+    value: "log"
 
 debezium_version: "0.10.0.Final"
-
-#----------------------------------------------------------------------
-# Yarn/node variables
-npm_prefix: "/usr/local/lib/npm"
-
-node_version: 14.x
-yarn_version: 1.22.4
 
 #----------------------------------------------------------------------
 # App variables
@@ -166,6 +163,7 @@ rollback_sql_path: "{{ app_path }}/rollback.sql.gz"
 system_path: "{{ shared_path }}/system"
 images_path: "{{ shared_path }}/images"
 files_path: "{{ shared_path }}/files"
+storage_path: "{{ shared_path }}/storage"
 spree_path: "{{ shared_path }}/spree"
 config_path: "{{ shared_path }}/config"
 log_path: "{{ shared_path }}/log"
@@ -173,6 +171,12 @@ pid_path: "{{ shared_path }}/pids"
 sock_path: "{{ shared_path }}/sock"
 l10n_path: "{{ shared_path }}/l10n"
 
+#----------------------------------------------------------------------
+# Node variables
+
+node_version: 14.21.2
+nodenv_version: 1.4.1
+nodenv_root: "{{ app_user_home_path }}/.nodenv"
 
 #----------------------------------------------------------------------
 # Logrotate options
@@ -183,6 +187,7 @@ logrotate_applications:
       - logs:
           - "{{ current_path }}/log/production.log"
           - "{{ current_path }}/log/staging.log"
+          - "{{ log_path }}/puma.log"
         options:
           - weekly        # rotate weekly
           - rotate 4      # delete logs older than 4 rotations
@@ -234,12 +239,15 @@ puma_timeout: "{{ unicorn_timeout | default('30') }}"
 
 core_devs:
   - maikel
-  - pau
   - matt
-  - andy
   - filipe
   - jb
   - david
+
+retired_core_devs:
+  - george
+  - pau
+  - stveep
 
 #----------------------------------------------------------------------
 # nginx config
@@ -380,6 +388,16 @@ nginx_sites:
         try_files /maintenance.html =503;
       }
 
+      location /cable {
+        {{ nginx_valid_methods }}
+        proxy_pass http://rails;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Ssl on;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+      }
+
       client_max_body_size 4G;
       keepalive_timeout {{ puma_timeout }};
       proxy_read_timeout {{ puma_timeout }};
@@ -394,8 +412,8 @@ nginx_configs:
   upstream:
     - upstream rails { server unix:{{ puma_sock }} fail_timeout=0; }
 
-# Use python2.7 interpeter
-ansible_python_interpreter: '/usr/bin/python2.7'
+# Set python interpeter to the symlink created by setup
+ansible_python_interpreter: '/usr/bin/python'
 
 # Fix for renamed branch in rbenv-install repo
 rbenv_plugins:

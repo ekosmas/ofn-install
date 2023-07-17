@@ -16,7 +16,6 @@ timezone: Paris
 # Used for the LetsEncrypt email setting
 developer_email: admin@coopcircuits.fr
 
-# Users listed here will have their key from /files/keys added to the unicorn_user
 users_sysadmin:
   - "{{ core_devs }}"
   - paco
@@ -24,3 +23,6 @@ users_sysadmin:
 maintenance_mode_message: >
   Une maintenance est en cours. Merci de patienter, la plateforme sera bientôt à nouveau disponible.
   Veuillez nous excuser pour la gêne occasionnée
+
+puma_workers: 3
+puma_threads: 4

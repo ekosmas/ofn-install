@@ -49,7 +49,7 @@ br-staging
 # Colombia
 
 [co-prod]
-openfoodcolombia.org
+openfoodcolombia.org ansible_host=5.161.72.75
 
 [co:children]
 co-prod
@@ -62,6 +62,23 @@ openfoodnetwork.ca ansible_host=68.183.204.127
 
 [ca:children]
 ca-prod
+
+#------------------------------------------------------------------------------
+# Costa Rica
+
+[cr-prod]
+laferia.cr ansible_host=95.217.177.232
+
+[cr:children]
+cr-prod
+
+#------------------------------------------------------------------------------
+# Hungary
+[hu-prod]
+csicsoka.org ansible_host=157.230.107.51
+
+[hu:children]
+hu-prod
 
 #------------------------------------------------------------------------------
 ## Ireland
@@ -93,6 +110,15 @@ stg.openfoodnetwork.it
 [it:children]
 it-prod
 it-staging
+
+#------------------------------------------------------------------------------
+# New Zealand
+
+[nz-prod]
+openfoodnetwork.org.nz ansible_host=45.64.60.7
+
+[nz:children]
+nz-prod
 
 #------------------------------------------------------------------------------
 # UK
@@ -137,7 +163,7 @@ es-staging
 # France
 
 [fr-prod]
-coopcircuits.fr ansible_host=51.68.226.206
+coopcircuits.fr ansible_host=51.38.38.32
 
 [fr-staging]
 staging.coopcircuits.fr ansible_host=51.178.24.33
@@ -195,6 +221,8 @@ es-prod
 fr-prod
 uk-prod
 de-prod
+ie-prod
+hu-prod
 gr-prod
 
 #------------------------------------------------------------------------------
@@ -205,12 +233,13 @@ ca-prod
 us-prod
 
 #------------------------------------------------------------------------------
-# Production Servers
+# Globally managed production servers
 
 [all-prod:children]
 europe
 america
 au-prod
+nz-prod
 gr-prod
 
 #------------------------------------------------------------------------------
@@ -233,6 +262,7 @@ ca
 ie
 in
 it
+nz
 uk
 us
 es
@@ -244,12 +274,14 @@ br
 co
 gr
 cr
+hu
+ch
 
 #------------------------------------------------------------------------------
-# Costa Rica
+# Switzerland
 
-[cr-prod]
-laferia.cr ansible_host=95.217.177.232
+[ch-prod]
+app.openfoodswitzerland.ch ansible_host=195.15.219.220
 
-[cr:children]
-cr-prod
+[ch:children]
+ch-prod

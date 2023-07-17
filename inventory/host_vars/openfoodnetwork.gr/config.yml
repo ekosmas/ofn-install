@@ -1,0 +1,14 @@
+---
+
+domain: www.openfoodnetwork.gr
+host_id: gr-prod
+rails_env: production
+
+admin_email: ekkosmas@gmail.com
+
+mail_domain: openfoodnetwork.gr
+
+certbot_domains:
+  - www.openfoodnetwork.gr
+  - openfoodnetwork.gr
+
